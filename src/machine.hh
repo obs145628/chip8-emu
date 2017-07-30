@@ -27,4 +27,6 @@ private:
 
    uint8_t stack_[STACK_SIZE];
    uint8_t sp_;
+
+   uint8_t vf_;
 };
