@@ -12,7 +12,16 @@ public:
    void run_cycle();
    void load_rom(std::istream& in);
 
+   static Machine& instance();
+
+   const uint8_t* screen_get() const { return screen_; }
+
 private:
+
+   Machine() = default;
+   Machine(const Machine&) = delete;
+   Machine& operator=(const Machine&) = delete;
+
    opcode_t opcode_;
    uint8_t mem_[MEMORY_SIZE];
 

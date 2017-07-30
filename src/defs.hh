@@ -13,3 +13,5 @@ constexpr int STACK_SIZE = 16;
 constexpr int NB_KEYS = 16;
 constexpr int FONTS_ADDR = 0x50;
 constexpr int APP_ADDR = 0X200;
+constexpr int FREQ = 60;
+constexpr int PERIOD_MS = 1000 / FREQ;

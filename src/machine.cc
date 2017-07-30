@@ -28,6 +28,13 @@ namespace
     };
 }
 
+
+Machine& Machine::instance()
+{
+  static Machine res;
+  return res;
+}
+
 void Machine::init()
 {
    std::fill(mem_, mem_ + MEMORY_SIZE, 0);
