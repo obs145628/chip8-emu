@@ -69,19 +69,22 @@ void Machine::run_cycle()
    auto op = opcode_;
    pc_ += 2;
 
-   std::cout << std::setw(4) << std::hex << (pc_ - 2) << "|   " << op << "  " << std::dec;
+   if (dump_)
+     std::cout << std::setw(4) << std::hex << (pc_ - 2) << "|   " << op << "  " << std::dec;
 
    if (op == 0x00E0) //00E0
    {
      //Clear screen
-     std::cout << "CLEAR SCREEN\n";
+     if (dump_)
+       std::cout << "CLEAR SCREEN\n";
      std::fill(screen_, screen_ + SCREENW * SCREENH, 0);
    }
 
    else if (op == 0x00EE) //00EE
    {
      //return
-     std::cout << "RETURN\n";
+     if (dump_)
+       std::cout << "RETURN\n";
      --sp_;
      assert(sp_ >= 0);
      pc_ = stack_[sp_];
@@ -90,7 +93,8 @@ void Machine::run_cycle()
    else if ((op & 0xF000) == 0) //0NNN
    {
      //[FIXME]
-     std::cout << "CALL RCA 1802\n";
+     if (dump_)
+       std::cout << "CALL RCA 1802\n";
    }
 
 
@@ -98,7 +102,8 @@ void Machine::run_cycle()
    {
      //jump NNN
      auto addr = op & 0x0FFF;
-     std::cout << "JUMP " << std::hex << addr << std::dec << "\n";
+     if (dump_)
+       std::cout << "JUMP " << std::hex << addr << std::dec << "\n";
      pc_ = addr;
    }
 
@@ -106,7 +111,8 @@ void Machine::run_cycle()
    {
      //call NNN
      auto addr = op & 0x0FFF;
-     std::cout << "CALL " << std::hex << addr << std::dec << "\n";
+     if (dump_)
+       std::cout << "CALL " << std::hex << addr << std::dec << "\n";
      assert(sp_ < STACK_SIZE);
      stack_[sp_] = pc_;
      ++sp_;
@@ -118,7 +124,8 @@ void Machine::run_cycle()
      //Vx == NN
      auto x = (op & 0x0F00) >> 8;
      auto val = op & 0x00FF;
-     std::cout << "V" << std::hex << x << std::dec << " == " << val << "\n";
+     if (dump_)
+       std::cout << "V" << std::hex << x << std::dec << " == " << val << "\n";
      if (val == regs_[x])
        pc_ += 2;
    }
@@ -128,7 +135,8 @@ void Machine::run_cycle()
      //Vx != NN
      auto x = (op & 0x0F00) >> 8;
      auto val = op & 0x00FF;
-     std::cout << "V" << std::hex << x << std::dec << " != " << val << "\n";
+     if (dump_)
+       std::cout << "V" << std::hex << x << std::dec << " != " << val << "\n";
      if (val != regs_[x])
        pc_ += 2;
    }
@@ -138,7 +146,8 @@ void Machine::run_cycle()
      //VX == VY
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
-     std::cout << "V" << std::hex << x << " == " << "V" << y << std::dec << "\n";
+     if (dump_)
+       std::cout << "V" << std::hex << x << " == " << "V" << y << std::dec << "\n";
      if (regs_[x] == regs_[y])
        pc_ += 2;
    }
@@ -148,7 +157,8 @@ void Machine::run_cycle()
      //VX = NN
      auto x = (op & 0x0F00) >> 8;
      auto val = op & 0x00FF;
-     std::cout << "V" << std::hex << x << std::dec << " = " << val << "\n";
+     if (dump_)
+       std::cout << "V" << std::hex << x << std::dec << " = " << val << "\n";
      regs_[x] = val;
    }
 
@@ -157,16 +167,18 @@ void Machine::run_cycle()
      //VX += NN
      auto x = (op & 0x0F00) >> 8;
      auto val = op & 0x00FF;
-     std::cout << "V" << std::hex << x << std::dec << " += " << val << "\n";
+     if (dump_)
+       std::cout << "V" << std::hex << x << std::dec << " += " << val << "\n";
      regs_[x] += val;
    }
 
    else if ((op & 0xF00F) == 0x8000) //8XY0
    {
      //VX = VY
-     std::cout << "VX = VY\n";
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
+     if (dump_)
+       std::cout << std::hex << "V" << x << " = V" << y << std::dec << "\n";
      regs_[x] = regs_[y];
    }
 
@@ -175,7 +187,8 @@ void Machine::run_cycle()
      //VX = VX | VY
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
-     std::cout << std::hex << "V" << x << " = V" << x << " | " << "V" << y << std::dec << "\n";
+     if (dump_)
+       std::cout << std::hex << "V" << x << " = V" << x << " | " << "V" << y << std::dec << "\n";
      regs_[x] |= regs_[y];
    }
 
@@ -184,7 +197,8 @@ void Machine::run_cycle()
      //VX = VX & VY
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
-     std::cout << std::hex << "V" << x << " = V" << x << " & " << "V" << y << std::dec << "\n";
+     if (dump_)
+       std::cout << std::hex << "V" << x << " = V" << x << " & " << "V" << y << std::dec << "\n";
      regs_[x] &= regs_[y];
    }
 
@@ -193,7 +207,8 @@ void Machine::run_cycle()
      //VX = VX ^ VY
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
-     std::cout << std::hex << "V" << x << " = V" << x << " ^ " << "V" << y << std::dec << "\n";
+     if (dump_)
+       std::cout << std::hex << "V" << x << " = V" << x << " ^ " << "V" << y << std::dec << "\n";
      regs_[x] ^= regs_[y];
    }
 
@@ -202,7 +217,8 @@ void Machine::run_cycle()
      //VX = VX + VY (update VF)
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
-          std::cout << std::hex << "V" << x << " = V" << x << " + " << "V" << y << std::dec << "\n";
+     if (dump_)
+       std::cout << std::hex << "V" << x << " = V" << x << " + " << "V" << y << std::dec << "\n";
      regs_[0xF] = (int) regs_[x] + (int) regs_[y] > 255;
      regs_[x] += regs_[y];
    }
@@ -212,12 +228,8 @@ void Machine::run_cycle()
      //VX = VX - VY (update VF)
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
-     std::cout << std::hex << "V" << x << " = V" << x << " - " << "V" << y << std::dec << "\n";
-
-     std::cout << "=====R: ";
-     for (int i = 0; i < 16; ++i)
-       std::cout << (int) regs_[i] << " ";
-     std::cout << "\n";
+     if (dump_)
+       std::cout << std::hex << "V" << x << " = V" << x << " - " << "V" << y << std::dec << "\n";
 
      regs_[0xF] = regs_[x] >= regs_[y];
      regs_[x] -= regs_[y];
@@ -226,8 +238,9 @@ void Machine::run_cycle()
    else if ((op & 0xF00F) == 0x8006) //8XY6
    {
      //Vx = Vx >> 1
-     std::cout << "VX = VX >> 1\n";
      auto x = (op & 0x0F00) >> 8;
+     if (dump_)
+       std::cout << "V" << x << " = V" << x << " >> 1" << std::dec << "\n";
      regs_[0xF] = regs_[x] & 1;
      regs_[x] >>= 1;
    }
@@ -235,9 +248,10 @@ void Machine::run_cycle()
    else if ((op & 0xF00F) == 0x8007) //8XY7
    {
      //VX = VY - VX
-     std::cout << "VX = VX - VY\n";
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
+     if (dump_)
+       std::cout << std::hex << "V" << x << " = V" << y << " - V" << x << std::dec << "\n";
      regs_[0xF] = regs_[y] >= regs_[x];
      regs_[x] = regs_[y] - regs_[x];
    }
@@ -245,7 +259,8 @@ void Machine::run_cycle()
    else if ((op & 0xF00F) == 0x800E) //8XYE
    {
      //Vx = Vx << 1
-     std::cout << "VX = VX << 1\n";
+     if (dump_)
+       std::cout << "VX = VX << 1\n";
      auto x = (op & 0x0F00) >> 8;
      regs_[0xF] = regs_[x] >> 15;
      regs_[x] <<= 1;
@@ -254,7 +269,8 @@ void Machine::run_cycle()
    else if ((op & 0xF00F) == 0x9000) //9XY0
    {
      //VX != VY
-     std::cout << "VX |= VY\n";
+     if (dump_)
+       std::cout << "VX |= VY\n";
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
      if (regs_[x] != regs_[y])
@@ -264,23 +280,26 @@ void Machine::run_cycle()
    else if ((op & 0xF000) == 0xA000) //ANNN
    {
      //I = NNN
-     std::cout << "I = NNN\n";
      auto val = op & 0x0FFF;
+     if (dump_)
+       std::cout << "I = " << std::hex << val << std::dec << "\n";
      i_ = val;
    }
 
    else if ((op & 0xF000) == 0xB000) //BNNN
    {
      //PC = V0 + NNN
-     std::cout << "PC = V0 + NNN\n";
      auto val = op & 0x0FFF;
+     if (dump_)
+       std::cout << "PC = V0 + " << std::hex << val << "\n";
      pc_ = regs_[0] + val;
    }
 
    else if ((op & 0xF000) == 0xC000) //CNNN
    {
      //VX = rand() & NN
-     std::cout << "VX = RAND() & NN\n";
+     if (dump_)
+       std::cout << "VX = RAND() & NN\n";
      auto x = (op & 0x0F00) >> 8;
      auto val = op & 0x00FF;
      regs_[x] = rand() & val;
@@ -294,7 +313,8 @@ void Machine::run_cycle()
      auto n = op & 0x000F;
      regs_[0xF] = 0;
 
-     std::cout << "DRAW " << (int) regs_[x] << ", " << (int) regs_[y] << "\n";
+     if (dump_)
+       std::cout << "DRAW " << (int) regs_[x] << ", " << (int) regs_[y]  << ", " << n << "\n";
 
      for (int i = 0; i < n; ++i)
      {
@@ -317,7 +337,8 @@ void Machine::run_cycle()
    else if ((op & 0xF0FF) == 0xE09E) //EX9E
    {
      //Vx key pressed ?
-     std::cout << "VX PRESSED ?\n";
+     if (dump_)
+       std::cout << "VX PRESSED ?\n";
      auto x = (op & 0x0F00) >> 8;
      assert(regs_[x] < NB_KEYS);
      if (keys_[regs_[x]])
@@ -327,7 +348,8 @@ void Machine::run_cycle()
    else if ((op & 0xF0FF) == 0xE0A1) //EXA1
    {
      //Vx key not pressed ?
-     std::cout << "VX NOT PRESSED ?\n";
+     if (dump_)
+       std::cout << "VX NOT PRESSED ?\n";
      auto x = (op & 0x0F00) >> 8;
      assert(regs_[x] < NB_KEYS);
      if (!keys_[regs_[x]])
@@ -337,7 +359,8 @@ void Machine::run_cycle()
    else if ((op & 0xF0FF) == 0xF007) //FX07
    {
      //Vx = delay_timer
-     std::cout << "VX = DELAY_TIMER\n";
+     if (dump_)
+       std::cout << "VX = DELAY_TIMER\n";
      auto x = (op & 0x0F00) >> 8;
      regs_[x] = delay_timer_;
    }
@@ -345,7 +368,8 @@ void Machine::run_cycle()
    else if ((op & 0xF0FF) == 0xF00A) //FX0A
    {
      //Wait for key
-     std::cout << "GET KEY\n";
+     if (dump_)
+       std::cout << "GET KEY\n";
      auto x = (op & 0x0F00) >> 8;
      (void) x;
      //[FIXME]
@@ -354,7 +378,8 @@ void Machine::run_cycle()
    else if ((op & 0xF0FF) == 0xF015) //FX15
    {
      //delay_timer = VX
-     std::cout << "DELAY_TIMER = VX\n";
+     if (dump_)
+       std::cout << "DELAY_TIMER = VX\n";
      auto x = (op & 0x0F00) >> 8;
      delay_timer_ = regs_[x];
    }
@@ -362,7 +387,8 @@ void Machine::run_cycle()
    else if ((op & 0xF0FF) == 0xF018) //FX18
    {
      //sound_timer = VX
-     std::cout << "SOUND_TIMER = VX\n";
+     if (dump_)
+       std::cout << "SOUND_TIMER = VX\n";
      auto x = (op & 0x0F00) >> 8;
      sound_timer_ = regs_[x];
    }
@@ -370,7 +396,8 @@ void Machine::run_cycle()
    else if ((op & 0xF0FF) == 0xF01E) //FX1E
    {
      //I += VX
-     std::cout << "I += VX\n";
+     if (dump_)
+       std::cout << "I += VX\n";
      auto x = (op & 0x0F00) >> 8;
      i_ += regs_[x];
    }
@@ -378,7 +405,8 @@ void Machine::run_cycle()
    else if ((op & 0xF0FF) == 0xF029) //FX29
    {
      //I = sprite_char_addr(vx)
-     std::cout << "I = FONT(VX)\n";
+     if (dump_)
+       std::cout << "I = FONT(VX)\n";
      auto x = (op & 0x0F00) >> 8;
      assert(regs_[x] <= 0xF);
      i_ = FONTS_ADDR + 5 * regs_[x];
@@ -387,7 +415,8 @@ void Machine::run_cycle()
    else if ((op & 0xF0FF) == 0xF033) //FX33
    {
      //I = BCD(VX)
-     std::cout << "I = BCD(VX)\n";
+     if (dump_)
+       std::cout << "I = BCD(VX)\n";
      auto x = (op & 0x0F00) >> 8;
      auto n = regs_[x];
      mem_[i_] = n / 100;
@@ -398,7 +427,8 @@ void Machine::run_cycle()
    else if ((op & 0xF0FF) == 0xF055) //FX55
    {
      //*i = [V0, VX]
-     std::cout << "*I = [V0, VX]\n";
+     if (dump_)
+       std::cout << "*I = [V0, VX]\n";
      auto x = (op & 0x0F00) >> 8;
      for (int i = 0; i <= x; ++i)
        mem_[i_ + i] = regs_[i];
@@ -407,7 +437,8 @@ void Machine::run_cycle()
    else if ((op & 0xF0FF) == 0xF065) //FX65
    {
      //[V0, VX] = *i
-     std::cout << "[V0, VX] = *I\n";
+     if (dump_)
+       std::cout << "[V0, VX] = *I\n";
      auto x = (op & 0x0F00) >> 8;
      for (int i = 0; i <= x; ++i)
        regs_[i] = mem_[i_ + i];

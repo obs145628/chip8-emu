@@ -18,6 +18,8 @@ public:
 
   void key_state_set(int key, bool state) { keys_[key] = state; }
 
+  void dump_set(bool dump) { dump_ = dump; }
+
 private:
 
    Machine() = default;
@@ -39,5 +41,7 @@ private:
 
    addr_t stack_[STACK_SIZE];
    uint8_t sp_;
+
+   bool dump_ = false;
 
 };
