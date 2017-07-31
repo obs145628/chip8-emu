@@ -7,7 +7,7 @@ class Window
 public:
 
   void handle_events();
-  void render();
+  void redraw();
 
   static Window& instance();
 
@@ -18,4 +18,8 @@ private:
 
   SDL_Window* win_;
   SDL_Renderer* renderer_;
+
+  bool redraw_;
+
+  void render_();
 };

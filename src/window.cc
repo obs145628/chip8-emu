@@ -1,4 +1,6 @@
 #include "window.hh"
+#include <algorithm>
+#include <array>
 #include <iostream>
 #include <cstdlib>
 #include "defs.hh"
@@ -6,7 +8,14 @@
 
 static constexpr int ZOOM = 5;
 
+namespace
+{
+  std::array<int, 16> keys = { SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_q, SDLK_w, SDLK_e, SDLK_r,
+                               SDLK_a, SDLK_s, SDLK_d, SDLK_f, SDLK_z, SDLK_x, SDLK_c, SDLK_v };
+}
+
 Window::Window()
+  : redraw_(true)
 {
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
   {
@@ -40,7 +49,7 @@ Window& Window::instance()
   return res;
 }
 
-void Window::render()
+void Window::render_()
 {
   SDL_RenderClear(renderer_);
 
@@ -65,13 +74,34 @@ void Window::render()
   SDL_RenderPresent(renderer_);
 }
 
+void Window::redraw()
+{
+  redraw_ = true;
+}
+
 void Window::handle_events()
 {
+  if (redraw_)
+  {
+    render_();
+    redraw_ = false;
+  }
+
   SDL_Event e;
 
   while (SDL_PollEvent(&e))
     {
       if (e.type == SDL_QUIT)
         exit(0);
+
+      if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)
+        {
+          auto state = e.type == SDL_KEYDOWN;
+          auto key = e.key.keysym.sym;
+          auto it = std::find(keys.begin(), keys.end(), key);
+          if (it != keys.end())
+            Machine::instance().key_state_set(it - keys.begin() + 1, state);
+        }
+
     }
 }

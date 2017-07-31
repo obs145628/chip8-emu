@@ -16,6 +16,8 @@ public:
 
    const uint8_t* screen_get() const { return screen_; }
 
+  void key_state_set(int key, bool state) { keys_[key] = state; }
+
 private:
 
    Machine() = default;

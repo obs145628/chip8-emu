@@ -13,10 +13,11 @@ int main()
   std::ifstream fs("../roms/pong.rom");
   c8.load_rom(fs);
 
-  for (;;)
+  for (int i = 0; ; ++i)
     {
       c8.run_cycle();
-      win.render();
+      //if (i % 10 == 0)
+      //getchar();
       win.handle_events();
       usleep(1000 * PERIOD_MS);
     }

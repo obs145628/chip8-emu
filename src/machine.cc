@@ -4,6 +4,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <iomanip>
+#include "window.hh"
 
 namespace
 {
@@ -96,16 +97,16 @@ void Machine::run_cycle()
    else if ((op & 0xF000) == 0x1000) //1NNN
    {
      //jump NNN
-     std::cout << "JUMP NNN\n";
      auto addr = op & 0x0FFF;
+     std::cout << "JUMP " << std::hex << addr << std::dec << "\n";
      pc_ = addr;
    }
 
    else if ((op & 0xF000) == 0x2000) //2NNN
    {
      //call NNN
-     std::cout << "CALL NNN\n";
      auto addr = op & 0x0FFF;
+     std::cout << "CALL " << std::hex << addr << std::dec << "\n";
      assert(sp_ < STACK_SIZE);
      stack_[sp_] = pc_;
      ++sp_;
@@ -115,9 +116,9 @@ void Machine::run_cycle()
    else if ((op & 0xF000) == 0x3000) //3XNN
    {
      //Vx == NN
-     std::cout << "VX == NN\n";
      auto x = (op & 0x0F00) >> 8;
      auto val = op & 0x00FF;
+     std::cout << "V" << std::hex << x << std::dec << " == " << val << "\n";
      if (val == regs_[x])
        pc_ += 2;
    }
@@ -125,9 +126,9 @@ void Machine::run_cycle()
    else if ((op & 0xF000) == 0x4000) //4XNN
    {
      //Vx != NN
-     std::cout << "VX != NN\n";
      auto x = (op & 0x0F00) >> 8;
      auto val = op & 0x00FF;
+     std::cout << "V" << std::hex << x << std::dec << " != " << val << "\n";
      if (val != regs_[x])
        pc_ += 2;
    }
@@ -135,9 +136,9 @@ void Machine::run_cycle()
    else if ((op & 0xF00F) == 0x5000) //5XY0
    {
      //VX == VY
-     std::cout << "VX == VY\n";
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
+     std::cout << "V" << std::hex << x << " == " << "V" << y << std::dec << "\n";
      if (regs_[x] == regs_[y])
        pc_ += 2;
    }
@@ -145,18 +146,18 @@ void Machine::run_cycle()
    else if ((op & 0xF000) == 0x6000) //6XNN
    {
      //VX = NN
-     std::cout << "VX == NN\n";
      auto x = (op & 0x0F00) >> 8;
      auto val = op & 0x00FF;
+     std::cout << "V" << std::hex << x << std::dec << " = " << val << "\n";
      regs_[x] = val;
    }
 
    else if ((op & 0xF000) == 0x7000) //7XNN
    {
      //VX += NN
-     std::cout << "VX += NN\n";
      auto x = (op & 0x0F00) >> 8;
      auto val = op & 0x00FF;
+     std::cout << "V" << std::hex << x << std::dec << " += " << val << "\n";
      regs_[x] += val;
    }
 
@@ -172,36 +173,36 @@ void Machine::run_cycle()
    else if ((op & 0xF00F) == 0x8001) //8XY1
    {
      //VX = VX | VY
-     std::cout << "VX = VX | VY\n";
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
+     std::cout << std::hex << "V" << x << " = V" << x << " | " << "V" << y << std::dec << "\n";
      regs_[x] |= regs_[y];
    }
 
    else if ((op & 0xF00F) == 0x8002) //8XY2
    {
      //VX = VX & VY
-     std::cout << "VX = VX & VY\n";
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
+     std::cout << std::hex << "V" << x << " = V" << x << " & " << "V" << y << std::dec << "\n";
      regs_[x] &= regs_[y];
    }
 
    else if ((op & 0xF00F) == 0x8003) //8XY3
    {
      //VX = VX ^ VY
-     std::cout << "VX = VX ^ VY\n";
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
+     std::cout << std::hex << "V" << x << " = V" << x << " ^ " << "V" << y << std::dec << "\n";
      regs_[x] ^= regs_[y];
    }
 
    else if ((op & 0xF00F) == 0x8004) //8XY4
    {
      //VX = VX + VY (update VF)
-     std::cout << "VX = VX + VY\n";
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
+          std::cout << std::hex << "V" << x << " = V" << x << " + " << "V" << y << std::dec << "\n";
      regs_[0xF] = (int) regs_[x] + (int) regs_[y] > 255;
      regs_[x] += regs_[y];
    }
@@ -209,10 +210,16 @@ void Machine::run_cycle()
    else if ((op & 0xF00F) == 0x8005) //8XY5
    {
      //VX = VX - VY (update VF)
-     std::cout << "VX = VX - VY\n";
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
-     regs_[0xF] = regs_[x] < regs_[y];
+     std::cout << std::hex << "V" << x << " = V" << x << " - " << "V" << y << std::dec << "\n";
+
+     std::cout << "=====R: ";
+     for (int i = 0; i < 16; ++i)
+       std::cout << (int) regs_[i] << " ";
+     std::cout << "\n";
+
+     regs_[0xF] = regs_[x] >= regs_[y];
      regs_[x] -= regs_[y];
    }
 
@@ -231,7 +238,7 @@ void Machine::run_cycle()
      std::cout << "VX = VX - VY\n";
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
-     regs_[0xF] = regs_[y] < regs_[x];
+     regs_[0xF] = regs_[y] >= regs_[x];
      regs_[x] = regs_[y] - regs_[x];
    }
 
@@ -282,11 +289,12 @@ void Machine::run_cycle()
    else if ((op & 0xF000) == 0xD000) //DXYN
    {
      //draw
-     std::cout << "DRAW\n";
      auto x = (op & 0x0F00) >> 8;
      auto y = (op & 0x00F0) >> 4;
      auto n = op & 0x000F;
      regs_[0xF] = 0;
+
+     std::cout << "DRAW " << (int) regs_[x] << ", " << (int) regs_[y] << "\n";
 
      for (int i = 0; i < n; ++i)
      {
@@ -296,12 +304,14 @@ void Machine::run_cycle()
          if ((row >> (7 - j) & 1))
          {
            //MIGHT be done in one if
-           if (screen_[(y + i) * SCREENW + (x + j)])
+           if (screen_[(regs_[y] + i) * SCREENW + (regs_[x] + j)])
              regs_[0xF] = 1;
-           screen_[(y + i) * SCREENW + (x + j)] ^= 1;
+           screen_[(regs_[y] + i) * SCREENW + (regs_[x] + j)] ^= 1;
          }
        }
      }
+
+     Window::instance().redraw();
    }
 
    else if ((op & 0xF0FF) == 0xE09E) //EX9E
